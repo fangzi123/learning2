@@ -11,8 +11,26 @@
 
     <context:property-placeholder location="classpath:rpc.properties"/>
 
+    <bean id="currentLimiter" class="com.nettyrpc.server.currentlimit.CounterCurrentLimiter">
+        <constructor-arg name="maxQps" value="1"/>
+    </bean>
+
+    <!--<bean id="currentLimiter" class="com.nettyrpc.server.currentlimit.TokenBucketCurrentLimiter">
+        <constructor-arg name="bucketSize" value="1"/>
+        <constructor-arg name="tokenInputRate" value="1"/>
+    </bean>-->
+
+    <bean id="serverCurrentLimitInterceptor" class="com.nettyrpc.interceptor.ServerCurrentLimitInterceptor">
+        <constructor-arg name="limiter" ref="currentLimiter" ></constructor-arg>
+    </bean>
+
     <bean id="rpcServerOptions" class="com.nettyrpc.server.RpcServerOptions">
         <property name="namingServiceUrl" value="${registry.address}"/>
+        <property name="interceptors">
+            <list>
+                <ref bean="serverCurrentLimitInterceptor"/>
+            </list>
+        </property>
     </bean>
 
     <bean id="rpcServer" class="com.nettyrpc.server.RpcServer">
